@@ -27,7 +27,7 @@ const waitForUrl = async ({
 
   for (let i = 0; i < iterations; i++) {
     try {
-      let headers = {};
+      let headers = {'Accept-Encoding': 'gzip,deflate,compress'}; // Needed to deal with https://bobbyhadz.com/blog/javascript-axioserror-unexpected-end-of-file#:~:text=The%20%22AxiosError%3A%20unexpected%20end%20of,back%20to%20axios%20version%201.1.
 
       if (vercelPassword) {
         const jwt = await getPassword({
@@ -35,9 +35,7 @@ const waitForUrl = async ({
           vercelPassword,
         });
 
-        headers = {
-          Cookie: `_vercel_jwt=${jwt}`,
-        };
+        headers.Cookie = `_vercel_jwt=${jwt}`
 
         core.setOutput('vercel_jwt', jwt);
       }
