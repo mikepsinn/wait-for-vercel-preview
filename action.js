@@ -422,6 +422,7 @@ const run = async () => {
       checkIntervalInMilliseconds: CHECK_INTERVAL_IN_MS,
       vercelPassword: VERCEL_PASSWORD,
       path: PATH,
+      authUrl: authTargetUrl
     });
   } catch (error) {
     core.setFailed(error.message);
