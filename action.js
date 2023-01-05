@@ -16,6 +16,7 @@ const waitForUrl = async ({
   checkIntervalInMilliseconds,
   vercelPassword,
   path,
+  authUrl
 }) => {
   const iterations = calculateIterations(
     maxTimeout,
@@ -40,11 +41,17 @@ const waitForUrl = async ({
       }
 
       let checkUri = new URL(path, url);
-
       await axios.get(checkUri.toString(), {
         headers,
       });
-      console.log('Received success status code');
+      console.log(`Received success status code from ${checkUri.toString()}`);
+
+      let authCheckUri = new URL(path, authUrl);
+      await axios.get(authCheckUri.toString(), {
+        headers,
+      });
+
+      console.log(`Received success status code from ${authCheckUri.toString()}`);
       return;
     } catch (e) {
       // https://axios-http.com/docs/handling_errors
@@ -203,6 +210,7 @@ const waitForDeploymentToStart = async ({
   actorName = 'vercel[bot]',
   maxTimeout = 20,
   checkIntervalInMilliseconds = 2000,
+  authServer
 }) => {
   const iterations = calculateIterations(
     maxTimeout,
@@ -221,7 +229,15 @@ const waitForDeploymentToStart = async ({
       const deployment =
         deployments.data.length > 0 &&
         deployments.data.find((deployment) => {
-          return deployment.creator.login === actorName;
+          console.log(deployment);
+          if(deployment.creator.login !== actorName) {
+            return false;
+          }
+          if(authServer){
+            return deployment.name.includes('auth-');
+          } else {
+            return !deployment.payload.includes('auth-');
+          }
         });
 
       if (deployment) {
@@ -320,7 +336,7 @@ const run = async () => {
     }
 
     // Get deployments associated with the pull request.
-    const deployment = await waitForDeploymentToStart({
+    const appDeployment = await waitForDeploymentToStart({
       octokit,
       owner,
       repo,
@@ -329,17 +345,46 @@ const run = async () => {
       actorName: 'vercel[bot]',
       maxTimeout: MAX_TIMEOUT,
       checkIntervalInMilliseconds: CHECK_INTERVAL_IN_MS,
+      authServer: false
     });
 
-    if (!deployment) {
-      core.setFailed('no vercel deployment found, exiting...');
+    // Get deployments associated with the pull request.
+    const authDeployment = await waitForDeploymentToStart({
+      octokit,
+      owner,
+      repo,
+      sha: sha,
+      environment: ENVIRONMENT,
+      actorName: 'vercel[bot]',
+      maxTimeout: MAX_TIMEOUT,
+      checkIntervalInMilliseconds: CHECK_INTERVAL_IN_MS,
+      authServer: true
+    });
+
+    if (!appDeployment) {
+      core.setFailed('no vercel appDeployment found, exiting...');
       return;
     }
 
-    const status = await waitForStatus({
+    if (!authDeployment) {
+      core.setFailed('no vercel authDeployment found, exiting...');
+      return;
+    }
+
+    const appStatus = await waitForStatus({
       owner,
       repo,
-      deployment_id: deployment.id,
+      deployment_id: appDeployment.id,
+      token: GITHUB_TOKEN,
+      maxTimeout: MAX_TIMEOUT,
+      allowInactive: ALLOW_INACTIVE,
+      checkIntervalInMilliseconds: CHECK_INTERVAL_IN_MS,
+    });
+
+    const authStatus = await waitForStatus({
+      owner,
+      repo,
+      deployment_id: authDeployment.id,
       token: GITHUB_TOKEN,
       maxTimeout: MAX_TIMEOUT,
       allowInactive: ALLOW_INACTIVE,
@@ -347,23 +392,32 @@ const run = async () => {
     });
 
     // Get target url
-    const targetUrl = status.target_url;
+    const appTargetUrl = appStatus.target_url;
 
-    if (!targetUrl) {
-      core.setFailed(`no target_url found in the status check`);
+    const authTargetUrl = authStatus.target_url;
+
+    if (!appTargetUrl) {
+      core.setFailed(`no appStatus.target_url found in the status check`);
       return;
     }
 
-    console.log('target url »', targetUrl);
+    if (!authTargetUrl) {
+        core.setFailed(`no authStatus.target_url found in the status check`);
+        return;
+    }
+
+    console.log('appTargetUrl url »', appTargetUrl);
+    console.log('authTargetUrl url »', authTargetUrl);
 
     // Set output
-    core.setOutput('url', targetUrl);
+    core.setOutput('appTargetUrl', appTargetUrl);
+    core.setOutput('authTargetUrl', authTargetUrl);
 
     // Wait for url to respond with a success
-    console.log(`Waiting for a status code 200 from: ${targetUrl}`);
+    console.log(`Waiting for a status code 200 from: ${appTargetUrl} and ${authTargetUrl}`);
 
     await waitForUrl({
-      url: targetUrl,
+      url: appTargetUrl,
       maxTimeout: MAX_TIMEOUT,
       checkIntervalInMilliseconds: CHECK_INTERVAL_IN_MS,
       vercelPassword: VERCEL_PASSWORD,
