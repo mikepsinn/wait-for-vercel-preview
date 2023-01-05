@@ -33,7 +33,7 @@ const waitForUrl = async ({
 
   for (let i = 0; i < iterations; i++) {
     try {
-      let headers = {'Accept-Encoding': 'gzip,deflate,compress'};
+      let headers = {'Accept-Encoding': 'gzip,deflate,compress'}; // Needed to deal with https://bobbyhadz.com/blog/javascript-axioserror-unexpected-end-of-file#:~:text=The%20%22AxiosError%3A%20unexpected%20end%20of,back%20to%20axios%20version%201.1.
 
       if (vercelPassword) {
         const jwt = await getPassword({
@@ -235,7 +235,7 @@ const waitForDeploymentToStart = async ({
         sha,
         environment,
       });
-      console.log("deployments.data", deployments.data);
+      // console.log("deployments.data", deployments.data);
 
       const deployment =
         deployments.data.length > 0 &&
