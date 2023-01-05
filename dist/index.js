@@ -240,9 +240,9 @@ const waitForDeploymentToStart = async ({
             return false;
           }
           if(authServer){
-            return deployment.name.includes('auth-');
+            return deployment.environment.includes('auth-');
           } else {
-            return !deployment.name.includes('auth-');
+            return !deployment.environment.includes('auth-');
           }
         });
 
