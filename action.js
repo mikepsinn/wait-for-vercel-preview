@@ -1,5 +1,7 @@
 // @ts-check
 // Dependencies are compiled using https://github.com/vercel/ncc
+// noinspection ExceptionCaughtLocallyJS
+
 const core = require('@actions/core');
 const github = require('@actions/github');
 const axios = require('axios');
@@ -41,21 +43,21 @@ const waitForUrl = async ({
       }
 
       let checkUri = new URL(path, url);
-      let appUrl = checkUri.toString();
-      console.log(`Getting appUrl: ${appUrl}`);
-      await axios.get(appUrl, {
+      let appUrlWithPath = checkUri.toString();
+      console.log(`Getting appUrl: ${appUrlWithPath}`);
+      await axios.get(appUrlWithPath, {
         headers,
       });
-      console.log(`Received success status code from ${appUrl}`);
+      console.log(`Received success status code from appUrlWithPath ${appUrlWithPath}`);
 
       let authCheckUri = new URL(path, authUrl);
-      let authUrl = authCheckUri.toString();
-        console.log(`Getting Auth URL: ${authUrl}`);
-      await axios.get(authUrl, {
+      let authUrlWithPath = authCheckUri.toString();
+        console.log(`Getting Auth URL: ${authUrlWithPath}`);
+      await axios.get(authUrlWithPath, {
         headers,
       });
 
-      console.log(`Received success status code from ${authUrl}`);
+      console.log(`Received success status code from authUrlWithPath ${authUrlWithPath}`);
       return;
     } catch (e) {
       // https://axios-http.com/docs/handling_errors
