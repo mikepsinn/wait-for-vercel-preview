@@ -406,12 +406,12 @@ const run = async () => {
         return;
     }
 
-    console.log('appTargetUrl url »', appTargetUrl);
-    console.log('authTargetUrl url »', authTargetUrl);
+    console.log('app_url »', appTargetUrl);
+    console.log('auth_url »', authTargetUrl);
 
     // Set output
-    core.setOutput('appTargetUrl', appTargetUrl);
-    core.setOutput('authTargetUrl', authTargetUrl);
+    core.setOutput('app_url', appTargetUrl);
+    core.setOutput('auth_url', authTargetUrl);
 
     // Wait for url to respond with a success
     console.log(`Waiting for a status code 200 from: ${appTargetUrl} and ${authTargetUrl}`);
