@@ -47,17 +47,21 @@ const waitForUrl = async ({
       }
 
       let checkUri = new URL(path, url);
-      await axios.get(checkUri.toString(), {
+      let appUrl = checkUri.toString();
+      console.log(`Getting appUrl: ${authUrl}`);
+      await axios.get(appUrl, {
         headers,
       });
-      console.log(`Received success status code from ${checkUri.toString()}`);
+      console.log(`Received success status code from ${appUrl}`);
 
       let authCheckUri = new URL(path, authUrl);
-      await axios.get(authCheckUri.toString(), {
+      let authUrl = authCheckUri.toString();
+        console.log(`Getting Auth URL: ${authUrl}`);
+      await axios.get(authUrl, {
         headers,
       });
 
-      console.log(`Received success status code from ${authCheckUri.toString()}`);
+      console.log(`Received success status code from ${authUrl}`);
       return;
     } catch (e) {
       // https://axios-http.com/docs/handling_errors
