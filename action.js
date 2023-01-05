@@ -225,11 +225,11 @@ const waitForDeploymentToStart = async ({
         sha,
         environment,
       });
+      console.log("deployments.data", deployments.data);
 
       const deployment =
         deployments.data.length > 0 &&
         deployments.data.find((deployment) => {
-          console.log(deployment);
           if(deployment.creator.login !== actorName) {
             return false;
           }
